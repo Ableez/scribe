@@ -1,0 +1,45 @@
+{
+  "name": "Scribe",
+  "short_name": "Scribe",
+  "start_url": "/",
+  "display": "standalone",
+  "description": "A school companion app",
+  "lang": "en/US",
+  "dir": "auto",
+  "theme_color": "#ede9fe",
+  "background_color": "#ede9fe",
+  "orientation": "portrait-primary",
+  "display_override": ["window-controls-overlay"],
+  "protocol_handlers": [{ "protocol": "mailto", "url": "/newEmail?to=%s" }],
+  "icons": [
+    {
+      "src": "/scribe_icon512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "scribe_icon192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "scribe_desk.png",
+      "sizes": "1523x584",
+      "type": "image/png",
+      "description": "A screenshot of the home page"
+    }
+  ],
+
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Take a note",
+      "url": "/",
+      "description": "Scribble a quick note."
+    }
+  ]
+}
