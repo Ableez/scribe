@@ -44,11 +44,11 @@ export const parseTime = (
 
   if (opts?.fullDateAndTime) {
     return date.toLocaleString("en-US", {
-      dateStyle: "medium",
       month: "short",
       hour: "numeric",
+      day: "2-digit",
       minute: "2-digit",
-      hour12: false,
+      hour12: true,
       timeZone: "UTC",
     });
   }

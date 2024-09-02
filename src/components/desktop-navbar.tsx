@@ -10,13 +10,14 @@ import {
 import { Button } from "./ui/button";
 import { BellIcon } from "lucide-react";
 import { TbBellCog } from "react-icons/tb";
+import Link from "next/link";
 
 const DesktopNavbar = () => {
   return (
     <div className="sticky top-0 z-[999] hidden place-items-center justify-between bg-white/60 px-16 pb-2 pt-4 align-middle backdrop-blur-md dark:bg-neutral-900/70 lg:flex">
-      <div>
+      <Link href={"/app"}>
         <h4 className="font-mono font-bold">Scribe</h4>
-      </div>
+      </Link>
       <div className="flex place-items-center justify-between gap-2 align-middle">
         <Avatar>
           <AvatarImage src="https://github.com/shadcn.png" />

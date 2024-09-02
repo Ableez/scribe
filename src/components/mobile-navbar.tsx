@@ -12,18 +12,22 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 
 const MobileNavbar = () => {
   const { setTheme, theme } = useTheme();
 
   return (
-    <div className="sticky top-0 z-[49] bg-white/80 align-middle backdrop-blur-md dark:bg-neutral-900/80 px-2 lg:hidden">
+    <div className="sticky top-0 z-[49] bg-white/80 px-2 align-middle backdrop-blur-md dark:bg-neutral-900/80 lg:hidden">
       <div className="relative flex place-items-center justify-between py-2 align-middle lg:hidden">
         <MobileSidebarContent />
 
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <Link
+          href={"/app"}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        >
           <h4 className="font-mono text-lg font-semibold">Scribe</h4>
-        </div>
+        </Link>
 
         <Drawer>
           <DrawerTrigger asChild>

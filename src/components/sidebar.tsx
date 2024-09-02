@@ -115,7 +115,7 @@ const Sidebar = () => {
           </Button>
         )}
       </div>
-      <Link href="" className="mb-4 w-full">
+      <Link href="/profile" className="mb-4 w-full">
         <div
           className={`flex w-full cursor-pointer place-items-center justify-between rounded-2xl border bg-violet-50/50 dark:border-violet-400/5 dark:bg-violet-400/5 ${isOpen ? "px-2" : "px-0"} align-middle transition-all duration-300 ease-in-out hover:bg-violet-300/60`}
         >
