@@ -1,11 +1,10 @@
-import BackButton from "@/app/create/_components/back";
-import { UserButton, UserProfile } from "@clerk/nextjs";
+import { UserProfile } from "@clerk/nextjs";
 import React from "react";
 
 const Profile = () => {
   return (
     <div className="mx-auto grid max-w-screen-md place-items-center pb-4">
-      <BackButton />
+      {/* <BackButton /> */}
       <UserProfile
         appearance={{
           baseTheme: { __type: "prebuilt_appearance" },

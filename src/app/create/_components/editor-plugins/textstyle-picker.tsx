@@ -8,16 +8,11 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { LexicalEditor } from "lexical";
 
 type TextStyle = {
   name: string;
   styles: string;
   value: string; // Unique lowercase identifier for the style
-};
-
-type Props = {
-  editor: LexicalEditor;
 };
 
 const textStyles: TextStyle[] = [
@@ -46,7 +41,7 @@ const textStyles: TextStyle[] = [
   { name: "Serif", styles: "font-serif", value: "serif" },
 ];
 
-const TextstylePicker = ({ editor }: Props) => {
+const TextstylePicker = () => {
   const [currentText, setCurrentText] = useState<{
     name: string;
     value: string;
@@ -77,6 +72,7 @@ const TextstylePicker = ({ editor }: Props) => {
         <div className="max-h-[60dvh] overflow-y-scroll pb-8">
           {textStyles.map((text, index) => (
             <div
+              key={index}
               className={`${text.styles} flex place-items-center justify-between px-2 py-3 align-middle transition-all duration-100 ease-in hover:bg-violet-100 hover:pl-3 dark:hover:bg-violet-400/10`}
               onClick={() => setCurrentText(text)}
             >

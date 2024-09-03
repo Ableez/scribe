@@ -28,11 +28,9 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-type Props = {};
-
 const LowPriority = 1;
 
-const UndoRedoTools = (props: Props) => {
+const UndoRedoTools = () => {
   const [editor] = useLexicalComposerContext();
 
   const [canUndo, setCanUndo] = useState(false);

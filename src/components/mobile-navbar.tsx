@@ -1,7 +1,5 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import MobileSidebarContent from "./mobile-sidebar-content";
-import { ThemeToggle } from "./theme-toggle";
 import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
 import { BellIcon, Ellipsis, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "./ui/button";

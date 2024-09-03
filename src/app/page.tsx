@@ -3,10 +3,9 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import React from "react";
 
-type Props = {};
 
-const Home = async (props: Props) => {
-  const { userId } = await auth();
+const Home = async () => {
+  const { userId } = auth();
   const user = await currentUser();
 
   return (

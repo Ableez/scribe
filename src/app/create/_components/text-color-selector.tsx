@@ -1,4 +1,4 @@
-import { LexicalEditor } from "lexical";
+import type { LexicalEditor } from "lexical";
 import { XCircleIcon } from "lucide-react";
 import { useCallback } from "react";
 import { $patchStyleText } from "@lexical/selection";
@@ -83,7 +83,7 @@ const TextColorSelector = ({ editor }: TextColorProps) => {
           </div>
         </DrawerHeader>
         <div className="flex flex-wrap place-items-center gap-5 px-4 pb-8 align-middle">
-          {pastelColors.map((cl, idx) => (
+          {pastelColors.map((cl) => (
             <DrawerClose key={cl.hex}>
               <button
                 onClick={() => {

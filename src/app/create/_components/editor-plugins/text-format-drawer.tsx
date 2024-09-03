@@ -6,14 +6,10 @@ import {
   DrawerHeader,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { $patchStyleText } from "@lexical/selection";
-import { useNoteStore } from "@/lib/store/noteeditor";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { mergeRegister } from "@lexical/utils";
 import {
   FORMAT_ELEMENT_COMMAND,
   FORMAT_TEXT_COMMAND,
-  LexicalEditor,
+  type LexicalEditor,
 } from "lexical";
 import {
   ALargeSmall,
@@ -21,25 +17,16 @@ import {
   AlignJustify,
   AlignLeft,
   AlignRight,
-  Bold,
   CodeXml,
-  Heading1,
-  Heading2,
-  Heading3,
-  Highlighter,
   IndentDecrease,
   IndentIncrease,
-  Italic,
   Minus,
   PencilRuler,
   Plus,
   Quote,
-  Strikethrough,
-  Underline,
   XCircleIcon,
 } from "lucide-react";
 import React from "react";
-import TextColorSelector from "../text-color-selector";
 import TextFormats from "./essential-text-format";
 
 type Props = {
@@ -47,11 +34,6 @@ type Props = {
 };
 
 const TextFormatDrawer = ({ editor }: Props) => {
-  const { currEditorState, updateEditorState } = useNoteStore();
-
-  const { isUnderline, isBold, isItalic, isStrikethrough, isHighlight } =
-    currEditorState;
-
   return (
     <Drawer>
       <DrawerTrigger asChild>

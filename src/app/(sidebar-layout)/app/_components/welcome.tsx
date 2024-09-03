@@ -1,10 +1,8 @@
-import { useUser } from "@clerk/nextjs";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import React from "react";
 
-type Props = {};
 
-const WelcomeComp = async (props: Props) => {
+const WelcomeComp = async () => {
   const { userId } = auth();
 
   if (!userId) {

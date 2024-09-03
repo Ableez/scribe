@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import {
@@ -6,7 +5,6 @@ import {
   $isRangeSelection,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import { PlusIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import TextFormatDrawer from "./text-format-drawer";
 import { useNoteStore } from "@/lib/store/noteeditor";
@@ -35,7 +33,7 @@ export default function ToolbarPlugin() {
         isStrikethrough: selection.hasFormat("strikethrough"),
       });
     }
-  }, []);
+  }, [updateEditorState]);
 
   useEffect(() => {
     return mergeRegister(
@@ -62,7 +60,7 @@ export default function ToolbarPlugin() {
       ref={toolbarRef}
     >
       <div className="flex w-fit gap-3 overflow-clip rounded bg-violet-100 align-middle dark:bg-neutral-900">
-        <TextstylePicker editor={editor} />
+        <TextstylePicker />
         <TextFormatDrawer editor={editor} />
       </div>
       <TextFormats editor={editor} />

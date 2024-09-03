@@ -33,7 +33,9 @@ export const AnimatedTooltip = ({
     springConfig,
   );
   const handleMouseMove = (
-    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent> & {
+      target: { offsetWidth: number };
+    },
   ) => {
     const halfWidth = event.target.offsetWidth / 2;
     x.set(event.nativeEvent.offsetX - halfWidth); // set the x value, which is then used in transform and rotate
@@ -78,7 +80,13 @@ export const AnimatedTooltip = ({
             </motion.div>
           )}
         </AnimatePresence>
-        <Avatar onMouseMove={(e) => handleMouseMove(e)}>
+        <Avatar
+          onMouseMove={(
+            e: React.MouseEvent<HTMLSpanElement, MouseEvent> & {
+              target: { offsetWidth: number };
+            },
+          ) => handleMouseMove(e)}
+        >
           <AvatarImage src={item.name} />
           <AvatarFallback>
             <span className="uppercase">{item.name[0]! + item.name[1]}</span>

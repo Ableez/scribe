@@ -4,10 +4,9 @@ import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { sidebarArrangementGroups, sidebarLists } from "./sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { ArrowRight, Ellipsis } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "./ui/sheet";
 import { IoMenu } from "react-icons/io5";
-import { UserButton } from "@clerk/nextjs";
 
 const MobileSidebarContent = () => {
   const router = useRouter();
@@ -23,7 +22,10 @@ const MobileSidebarContent = () => {
         side={"left"}
       >
         <div>
-          <Link href="/user-profile" className="w-full bg-white dark:bg-neutral-900">
+          <Link
+            href="/user-profile"
+            className="w-full bg-white dark:bg-neutral-900"
+          >
             <SheetClose className="sticky top-0 z-[40] w-full dark:shadow-xl">
               <div
                 className={`flex w-full cursor-pointer place-items-center justify-between rounded-2xl bg-violet-200/70 px-2 py-2 align-middle transition-all duration-300 ease-in-out hover:bg-violet-300/60 dark:bg-neutral-900`}

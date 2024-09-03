@@ -1,4 +1,4 @@
-import { SerializedEditorState, SerializedLexicalNode } from "lexical";
+import type { SerializedEditorState, SerializedLexicalNode } from "lexical";
 import { create } from "zustand";
 
 type State = {
@@ -14,7 +14,7 @@ type State = {
 };
 
 type Action = {
-  updateEditorState: (obj: { [key: string]: boolean }) => void;
+  updateEditorState: (obj: Record<string, boolean>) => void;
   setEditorState: (
     editorState: SerializedEditorState<SerializedLexicalNode>,
   ) => void;

@@ -6,24 +6,16 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import {
-  EditorState,
-  SerializedEditorState,
-  SerializedLexicalNode,
-} from "lexical";
+import { type EditorState } from "lexical";
 import OnChangePlugin from "./_components/editor-plugins/onchange-plugin";
 import ToolbarPlugin from "./_components/editor-plugins/toolbar-plugin";
 import UndoRedoTools from "./_components/editor-plugins/undo-redo-tools";
-import TreeViewPlugin from "./_components/editor-plugins/tree-view-debugger";
 import EditorTheme from "./_components/editor-plugins/editor-theme";
 import { useNoteStore } from "@/lib/store/noteeditor";
 import { Input } from "@/components/ui/input";
 import { parseTime } from "@/lib/utils";
 import FloatingTextFormatToolbarPlugin from "./_components/editor-plugins/floating-formater-plugin";
 import { useTheme } from "next-themes";
-import BackgroundColorPlugin from "./_components/editor-plugins/background-color-plugin";
-
-type Props = {};
 
 const onError = (error: Error) => {
   console.log("====================================");
@@ -37,18 +29,11 @@ const initialConfig = {
   onError,
 };
 
-const bs = [
-  {
-    name: "",
-    styles: "", // all distinct classnames
-    value: "", // a lower case id for the styles
-  }
-]
-
-const CreateNote = (props: Props) => {
+const CreateNote = () => {
   const { setEditorState } = useNoteStore();
-  const [floatingAnchorElem, setFloatingAnchorElem] = useState<HTMLElement>();
-  const [isLinkEditMode, setIsLinkEditMode] = useState<boolean>(false);
+  const [floatingAnchorElem] = useState<HTMLElement>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, setIsLinkEditMode] = useState<boolean>(false);
   const { theme } = useTheme();
 
   const onChange = (editorState: EditorState) => {
@@ -80,7 +65,7 @@ const CreateNote = (props: Props) => {
           />
         </div>
         <HistoryPlugin />
-        <BackgroundColorPlugin />
+        <AutoFocusPlugin />
         <FloatingTextFormatToolbarPlugin
           anchorElem={floatingAnchorElem}
           setIsLinkEditMode={setIsLinkEditMode}

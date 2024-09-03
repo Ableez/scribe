@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { FORMAT_TEXT_COMMAND, LexicalEditor } from "lexical";
-import React, { useCallback } from "react";
-import { $patchStyleText } from "@lexical/selection";
-import { $getSelection } from "lexical";
+import { FORMAT_TEXT_COMMAND, type LexicalEditor } from "lexical";
+import React from "react";
+// import { $patchStyleText } from "@lexical/selection";
+// import { $getSelection } from "lexical";
 import { useNoteStore } from "@/lib/store/noteeditor";
 import {
   Bold,
@@ -22,27 +22,27 @@ const TextFormats = ({ editor }: Props) => {
   const { isBold, isHighlight, isItalic, isStrikethrough, isUnderline } =
     currEditorState;
 
-  const applyStyleText = useCallback(
-    (styles: Record<string, string>, skipHistoryStack?: boolean) => {
-      editor.update(
-        () => {
-          const selection = $getSelection();
-          if (selection !== null) {
-            $patchStyleText(selection, styles);
-          }
-        },
-        skipHistoryStack ? { tag: "historic" } : {},
-      );
-    },
-    [editor],
-  );
+  // const applyStyleText = useCallback(
+  //   (styles: Record<string, string>, skipHistoryStack?: boolean) => {
+  //     editor.update(
+  //       () => {
+  //         const selection = $getSelection();
+  //         if (selection !== null) {
+  //           $patchStyleText(selection, styles);
+  //         }
+  //       },
+  //       skipHistoryStack ? { tag: "historic" } : {},
+  //     );
+  //   },
+  //   [editor],
+  // );
 
-  const onTextColorText = useCallback(
-    (value: string, skipHistoryStack: boolean) => {
-      applyStyleText({ "background-color": value }, skipHistoryStack);
-    },
-    [applyStyleText],
-  );
+  // const onTextColorText = useCallback(
+  //   (value: string, skipHistoryStack: boolean) => {
+  //     applyStyleText({ "background-color": value }, skipHistoryStack);
+  //   },
+  //   [applyStyleText],
+  // );
 
   return (
     <div className="flex place-items-center justify-between gap-2 align-middle">

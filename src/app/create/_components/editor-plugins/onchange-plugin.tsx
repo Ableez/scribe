@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { EditorState } from "lexical";
+import type { EditorState } from "lexical";
 
 type Props = {
   onChange: (editorState: EditorState) => void;

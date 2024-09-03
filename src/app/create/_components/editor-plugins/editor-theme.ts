@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export default {
+const config = {
   code: cn("font-mono text-amber-700 font-medium rounded p-1 bg-amber-100"),
   heading: {
     h1: cn("editor-heading-h1"),
@@ -36,3 +36,5 @@ export default {
     highlight: cn("bg-amber-300 text-amber"),
   },
 };
+
+export default config;
