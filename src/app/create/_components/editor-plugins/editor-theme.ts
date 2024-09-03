@@ -26,12 +26,13 @@ export default {
   rtl: cn("rtl"),
   text: {
     bold: cn("font-bold"),
-    code: cn("font-mono text-red-700"),
+    code: cn("font-mono text-amber-800 py-1 px-2 bg-amber-800/10 rounded-sm"),
     hashtag: cn("editor-text-hashtag"),
     italic: cn("editor-text-italic"),
     overflowed: cn("editor-text-overflowed"),
     strikethrough: cn("line-through"),
     underline: cn("underline"),
     underlineStrikethrough: cn("line-through"),
+    highlight: cn("bg-amber-300 text-amber"),
   },
 };

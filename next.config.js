@@ -1,18 +1,9 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
-//   webpack: (config) => {
-//     config.module.rules.push({
-//       test: /\.css$/,
-//       use: ["style-loader", "css-loader"],
-//     });
-//     return config;
-//   },
+  logging: { fetches: { fullUrl: true } },
+  devIndicators: { buildActivity: true },
 };
 
 export default config;

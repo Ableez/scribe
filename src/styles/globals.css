@@ -517,6 +517,20 @@ pre::-webkit-scrollbar-thumb {
   background-size: 56px 56px;
 }
 
+.darklined-bg {
+  background-image: linear-gradient(
+    0deg,
+    #171717 48.21%,
+    #041e33 48.21%,
+    #041e33 50%,
+    #171717 50%,
+    #171717 98.21%,
+    #041e33 98.21%,
+    #041e33 100%
+  );
+  background-size: 56px 56px;
+}
+
 .hhlnh {
   line-height: 2em !important;
 }

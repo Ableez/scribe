@@ -62,7 +62,7 @@ const UndoRedoTools = (props: Props) => {
   }, [editor]);
 
   return (
-    <div className="sticky top-0 flex place-items-center justify-between border-b bg-white px-4 py-2 align-middle z-[49]">
+    <div className="sticky top-0 z-[49] flex place-items-center justify-between border-b bg-white px-4 py-2 align-middle dark:border-b-neutral-800 dark:bg-neutral-900">
       <Button onClick={() => router.back()} variant={"icon"} size={"icon"}>
         <IoChevronBack size={20} />
       </Button>
@@ -109,7 +109,11 @@ const UndoRedoTools = (props: Props) => {
                 <Button title="Page style" className="h-12 w-12" size={"icon"}>
                   <Palette size={20} />
                 </Button>
-                <Button title="Find in note" className="h-12 w-12" size={"icon"}>
+                <Button
+                  title="Find in note"
+                  className="h-12 w-12"
+                  size={"icon"}
+                >
                   <Search size={20} />
                 </Button>
               </div>

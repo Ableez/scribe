@@ -7,6 +7,8 @@ type State = {
     isUnderline: boolean;
     isItalic: boolean;
     isStrikethrough: boolean;
+    isHighlight: boolean;
+    isCodeblock: boolean;
   };
   editorState: SerializedEditorState<SerializedLexicalNode> | null;
 };
@@ -24,6 +26,10 @@ export const useNoteStore = create<State & Action>((set) => ({
     isItalic: false,
     isStrikethrough: false,
     isUnderline: false,
+    isCodeblock: false,
+    isHighlight: false,
+    isSubscript: false,
+    isSuperscript: false,
   },
   editorState: null,
   updateEditorState: (obj) =>
