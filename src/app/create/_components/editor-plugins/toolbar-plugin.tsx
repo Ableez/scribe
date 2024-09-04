@@ -56,7 +56,7 @@ export default function ToolbarPlugin() {
 
   return (
     <div
-      className="fixed bottom-6 flex w-screen place-items-center justify-between gap-2 overflow-y-scroll bg-white/50 px-2 py-1.5 align-middle dark:bg-violet-600/10 md:bottom-0"
+      className="fixed bottom-6 left-1/2 flex w-screen max-w-screen-sm -translate-x-1/2 place-items-center justify-between gap-2 overflow-y-scroll bg-white/50 px-2 py-1.5 align-middle dark:bg-violet-600/10 md:bottom-0"
       ref={toolbarRef}
     >
       <div className="flex w-fit gap-3 overflow-clip rounded bg-violet-100 align-middle dark:bg-neutral-900">

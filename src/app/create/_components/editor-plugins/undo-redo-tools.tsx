@@ -3,10 +3,12 @@
 import { Button } from "@/components/ui/button";
 import {
   EllipsisVertical,
+  MoonIcon,
   Palette,
   Redo,
   Search,
   Share2,
+  SunIcon,
   Trash2,
   Undo,
 } from "lucide-react";
@@ -27,6 +29,13 @@ import {
   DrawerHeader,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
 
 const LowPriority = 1;
 
@@ -58,6 +67,8 @@ const UndoRedoTools = () => {
       ),
     );
   }, [editor]);
+
+  const { setTheme, theme } = useTheme();
 
   return (
     <div className="sticky top-0 z-[49] flex place-items-center justify-between border-b bg-white px-4 py-2 align-middle dark:border-b-neutral-800 dark:bg-neutral-900">
@@ -97,22 +108,86 @@ const UndoRedoTools = () => {
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <div className="flex place-items-center justify-between gap-2 align-middle">
-                <Button title="Share note" className="h-12 w-12" size={"icon"}>
-                  <Share2 size={20} />
+              <div className="flex flex-col place-items-center justify-between gap-2 align-middle">
+                <DropdownMenu modal={true}>
+                  <DropdownMenuTrigger className="w-full">
+                    <Button
+                      className={
+                        "flex w-full justify-start gap-4 border-none bg-transparent text-black shadow-none hover:bg-violet-200/60 dark:bg-transparent dark:text-white dark:hover:bg-violet-500/20"
+                      }
+                    >
+                      <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 text-violet-800 transition-all dark:-rotate-90 dark:scale-0 dark:text-violet-300" />
+                      <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 text-violet-800 transition-all dark:rotate-0 dark:scale-100 dark:text-violet-300" />
+                      <span className="capitalize">{theme} theme</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="center"
+                    className="w-[80dvw] md:w-fit"
+                  >
+                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                      Dark
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                      System
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant={"outline"}
+                  title="Share note"
+                  className={
+                    "flex w-full justify-start gap-4 border-none bg-transparent text-black shadow-none hover:bg-violet-200/60 dark:bg-transparent dark:text-white dark:hover:bg-violet-500/20"
+                  }
+                >
+                  <Share2
+                    size={16}
+                    className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 text-violet-800 transition-all dark:text-violet-300"
+                  />
+                  <h4>Share note</h4>
                 </Button>
-                <Button title="Delete note" className="h-12 w-12" size={"icon"}>
-                  <Trash2 size={20} />
-                </Button>
-                <Button title="Page style" className="h-12 w-12" size={"icon"}>
-                  <Palette size={20} />
+
+                <Button
+                  variant={"outline"}
+                  title="Delete note"
+                  className={
+                    "flex w-full justify-start gap-4 border-none bg-transparent text-black shadow-none hover:bg-violet-200/60 dark:bg-transparent dark:text-white dark:hover:bg-violet-500/20"
+                  }
+                >
+                  <Trash2
+                    size={16}
+                    className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 text-violet-800 transition-all dark:text-violet-300"
+                  />
+                  <h4>Delete note</h4>
                 </Button>
                 <Button
-                  title="Find in note"
-                  className="h-12 w-12"
-                  size={"icon"}
+                  variant={"outline"}
+                  title="Page style"
+                  className={
+                    "flex w-full justify-start gap-4 border-none bg-transparent text-black shadow-none hover:bg-violet-200/60 dark:bg-transparent dark:text-white dark:hover:bg-violet-500/20"
+                  }
                 >
-                  <Search size={20} />
+                  <Palette
+                    size={16}
+                    className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 text-violet-800 transition-all dark:text-violet-300"
+                  />
+                  <h4>Note style</h4>
+                </Button>
+                <Button
+                  variant={"outline"}
+                  title="Find in note"
+                  className={
+                    "flex w-full justify-start gap-4 border-none bg-transparent text-black shadow-none hover:bg-violet-200/60 dark:bg-transparent dark:text-white dark:hover:bg-violet-500/20"
+                  }
+                >
+                  <Search
+                    size={16}
+                    className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 text-violet-800 transition-all dark:text-violet-300"
+                  />
+                  <h4>Find in note</h4>
                 </Button>
               </div>
             </DrawerHeader>
