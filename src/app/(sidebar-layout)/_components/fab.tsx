@@ -60,6 +60,14 @@ const FAB = () => {
         editorState: JSON.stringify(null),
         medias: [],
         title: "Untitled",
+        lastEdittedBy: {
+          email: user.primaryEmailAddress?.emailAddress ?? "null@null.null",
+          emailVerified:
+            user.primaryEmailAddress?.verification.status === "verified",
+          id: user.id,
+          image: user.imageUrl,
+          username: user.username!,
+        },
       });
 
       if (createdNote?.data!.id) router.push(`/note/${createdNote?.data.id}`);
