@@ -1,128 +1,219 @@
 import { create } from "zustand";
-import {
-  createJSONStorage,
-  persist,
-  type StateStorage,
-} from "zustand/middleware";
-import type { NoteDocumentActions, NoteDocumentState } from "./types";
+import { persist } from "zustand/middleware";
 import { get, set, del } from "idb-keyval";
+import debounce from "lodash/debounce";
+import type { LexicalEditor, EditorState } from "lexical";
+import { api, queryClient } from "@/trpc/react";
+import { useEffect } from "react";
 
-const storage: StateStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    // console.log(name, "has been retrieved");
-    return (await get(name)) ?? null;
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    // console.log(name, "with value", value, "has been saved");
-    await set(name, value);
-  },
-  removeItem: async (name: string): Promise<void> => {
-    console.log(name, "has been deleted");
-    await del(name);
-  },
+// Types
+type User = {
+  id: string;
+  username: string;
+  email: string;
+  emailVerified: boolean;
+  image: string;
 };
 
-export const useNoteContentStore = create<
-  NoteDocumentState & NoteDocumentActions
->()(
+type Note = {
+  id: string;
+  title: string;
+  authorId: string;
+  editorSettings?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  editorState: string; // Serialized Lexical EditorState
+  author: User;
+  comments: unknown[];
+  medias: unknown[];
+  collaborators: (User | undefined)[];
+  lastEdittedBy: User | null;
+};
+
+type NotesStore = {
+  notes: Note[];
+  setNotes: (notes: Note[]) => void;
+  addNote: (note: Note) => void;
+  updateNote: (updatedNote: Partial<Note>) => void;
+  deleteNote: (noteId: string) => void;
+  isOnline: boolean;
+  setIsOnline: (isOnline: boolean) => void;
+  updateEditorState: (noteId: string, editorState: EditorState) => void;
+  getNote: (noteId: string) => Note | undefined;
+};
+
+// Zustand store with persistence
+const useNotesStore = create<NotesStore>()(
   persist(
     (set, get) => ({
-      title: "",
-      editorState: null,
-      author: {
-        id: "",
-        username: "",
-        email: "",
-        profilePicture: "",
+      notes: [],
+      setNotes: (notes) => set({ notes }),
+      addNote: (note) => set((state) => ({ notes: [...state.notes, note] })),
+      updateNote: (updatedNote) =>
+        set((state) => ({
+          notes: state.notes.map((note) =>
+            note.id === updatedNote.id ? { ...note, ...updatedNote } : note,
+          ),
+        })),
+      deleteNote: (noteId) =>
+        set((state) => ({
+          notes: state.notes.filter((note) => note.id !== noteId),
+        })),
+      isOnline: navigator.onLine,
+      setIsOnline: (isOnline) => set({ isOnline }),
+      updateEditorState: (noteId, editorState) => {
+        const serializedState = JSON.stringify(editorState.toJSON());
+        set((state) => ({
+          notes: state.notes.map((note) =>
+            note.id === noteId
+              ? { ...note, editorState: serializedState }
+              : note,
+          ),
+        }));
       },
-      versions: [
-        {
-          id: "",
-          createdAt: "",
-          previousVersion: "",
-          lastEdittedAt: "",
-        },
-      ],
-      editorSettings: {
-        pageStyle: "",
+      getNote: (noteId) => {
+        const state = get();
+        return state.notes.find((note) => note.id === noteId);
       },
-      collaborators: [
-        {
-          id: "",
-          username: "",
-          email: "",
-          profilePicture: "",
-        },
-      ],
-      comments: [
-        {
-          id: "",
-          author: {
-            id: "",
-            username: "",
-            email: "",
-            profilePicture: "",
-          },
-          text: "",
-          createdAt: "",
-          edittedAt: "",
-          isEditted: false,
-        },
-      ],
-      //
-      setTitle: (title) => set({ title }),
-      setEditorState: (editorState) => set({ editorState }),
-      setAuthor: (author) => set({ author }),
-      addVersion: (version) =>
-        set((state) => ({ versions: [...state.versions, version] })),
-      updateVersion: (id, updates) =>
-        set((state) => ({
-          versions: state.versions.map((v) =>
-            v.id === id ? { ...v, ...updates } : v,
-          ),
-        })),
-      setEditorSettings: (settings) => set({ editorSettings: settings }),
-      addCollaborator: (collaborator) =>
-        set((state) => ({
-          collaborators: [...state.collaborators, collaborator],
-        })),
-      removeCollaborator: (id) =>
-        set((state) => ({
-          collaborators: state.collaborators.filter((c) => c.id !== id),
-        })),
-      updateCollaborator: (id, updates) =>
-        set((state) => ({
-          collaborators: state.collaborators.map((c) =>
-            c.id === id ? { ...c, ...updates } : c,
-          ),
-        })),
-      addComment: (comment) =>
-        set((state) => ({ comments: [...state.comments, comment] })),
-      removeComment: (id) =>
-        set((state) => ({
-          comments: state.comments.filter((c) => c.id !== id),
-        })),
-      updateComment: (id, updates) =>
-        set((state) => ({
-          comments: state.comments.map((c) =>
-            c.id === id ? { ...c, ...updates } : c,
-          ),
-        })),
-      //
-      getTitle: () => get().title,
-      getEditorState: () => get().editorState,
-      getAuthor: () => get().author,
-      getVersions: () => get().versions,
-      getVersionById: (id) => get().versions.find((v) => v.id === id),
-      getEditorSettings: () => get().editorSettings,
-      getCollaborators: () => get().collaborators,
-      getCollaboratorById: (id) => get().collaborators.find((c) => c.id === id),
-      getComments: () => get().comments,
-      getCommentById: (id) => get().comments.find((c) => c.id === id),
     }),
     {
-      name: "note-editor-content-storage",
-      storage: createJSONStorage(() => storage),
+      name: "notes-storage",
+      getStorage: () => ({
+        getItem: async (name) => {
+          const value = (await get(name)) as unknown as string;
+          return value ?? null;
+        },
+        setItem: async (name, value) => {
+          await set(name, value);
+        },
+        removeItem: async (name) => {
+          await del(name);
+        },
+      }),
     },
   ),
 );
+
+// Custom hook for data interaction
+export const useNotesData = () => {
+  const { notes, setNotes, isOnline, updateEditorState, getNote } =
+    useNotesStore();
+
+  const fetchNotes = api.note.getUserNotes.useQuery(undefined, {
+    enabled: isOnline,
+  });
+
+  useEffect(() => {
+    if (fetchNotes.isSuccess && fetchNotes.data?.data) {
+      setNotes(fetchNotes.data.data);
+    }
+  }, [fetchNotes.isSuccess, fetchNotes.data?.data, setNotes]);
+
+  const addNoteMutation = api.note.create.useMutation({
+    onSuccess: async (newNote) => {
+      if (newNote?.data) {
+        useNotesStore.getState().addNote(newNote.data);
+        return newNote.data;
+      }
+      await queryClient.invalidateQueries();
+    },
+  });
+
+  const updateNoteMutation = api.note.updateNote.useMutation({
+    mutationKey: [""],
+    onSuccess: async (updatedNote) => {
+      if (updatedNote.data[0]) {
+        useNotesStore.getState().updateNote(updatedNote.data[0]);
+        await queryClient.invalidateQueries();
+      }
+    },
+  });
+
+  const deleteNoteMutation = api.note.deleteNote.useMutation({
+    onSuccess: async (deletedNote) => {
+      if (deletedNote.data)
+        useNotesStore.getState().deleteNote(deletedNote.data);
+      await queryClient.invalidateQueries();
+    },
+  });
+
+  const getNoteQuery = api.note.getNoteInfo.useQuery;
+
+  // Debounced function to update editor state
+  const debouncedUpdateEditorState = debounce(
+    (noteId: string, editorState: EditorState) => {
+      const serializedState = JSON.stringify(editorState.toJSON());
+      updateNoteMutation.mutate({
+        noteId,
+        updateFields: { editorState: serializedState },
+      });
+    },
+    5000,
+  ); // Debounce for 1 second
+
+  const addNote = async (
+    note: Omit<Note, "id" | "createdAt" | "updatedAt">,
+  ) => {
+    if (isOnline) {
+      const createdNote = await addNoteMutation.mutateAsync(note);
+      return createdNote;
+    } else {
+      // For offline mode, generate a temporary ID
+      const tempNote = {
+        ...note,
+        id: `temp_${Date.now()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      useNotesStore.getState().addNote(tempNote as Note);
+      return { data: tempNote };
+    }
+  };
+
+  const updateNote = (noteId: string, updatedNote: Partial<Note>) => {
+    if (isOnline) {
+      updateNoteMutation.mutate({ noteId, updateFields: updatedNote });
+    } else {
+      useNotesStore.getState().updateNote({ id: noteId, ...updatedNote });
+    }
+  };
+
+  const deleteNote = (noteId: string) => {
+    if (isOnline) {
+      deleteNoteMutation.mutate({ noteId });
+    } else {
+      useNotesStore.getState().deleteNote(noteId);
+    }
+  };
+
+  const handleEditorChange = (noteId: string, editor: LexicalEditor) => {
+    editor.update(() => {
+      const editorState = editor.getEditorState();
+      updateEditorState(noteId, editorState);
+      debouncedUpdateEditorState(noteId, editorState);
+    });
+  };
+
+  const getNoteById = (noteId: string) => {
+    const localNote = getNote(noteId);
+    if (localNote) {
+      return { data: localNote, isLoading: false, isError: false };
+    }
+    return getNoteQuery({ noteId });
+  };
+
+  return {
+    notes,
+    addNote,
+    updateNote,
+    deleteNote,
+    getNoteById,
+    getNote,
+    isOnline,
+    handleEditorChange,
+    isLoading: fetchNotes.isLoading,
+    isError: fetchNotes.isError,
+  };
+};
+
+export default useNotesStore;

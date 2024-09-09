@@ -7,6 +7,8 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    CLERK_SECRET_KEY: z.string(),
+    WEBHOOK_SECRET: z.string(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -20,8 +22,15 @@ export const env = createEnv({
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
       (str) => process.env.VERCEL_URL ?? str,
       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-      process.env.VERCEL ? z.string() : z.string().url()
+      process.env.VERCEL ? z.string() : z.string().url(),
     ),
+    DATABASE_PRISMA_URL: z.string(),
+    DATABASE_URL_NO_SSL: z.string(),
+    DATABASE_URL_NON_POOLING: z.string(),
+    DATABASE_USER: z.string(),
+    DATABASE_HOST: z.string(),
+    DATABASE_PASSWORD: z.string(),
+    DATABASE_DATABASE: z.string(),
   },
 
   /**
@@ -31,6 +40,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -42,6 +52,17 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
+    DATABASE_PRISMA_URL: process.env.DATABASE_PRISMA_URL,
+    DATABASE_URL_NO_SSL: process.env.DATABASE_URL_NO_SSL,
+    DATABASE_URL_NON_POOLING: process.env.DATABASE_URL_NON_POOLING,
+    DATABASE_USER: process.env.DATABASE_USER,
+    DATABASE_HOST: process.env.DATABASE_HOST,
+    DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
+    DATABASE_DATABASE: process.env.DATABASE_DATABASE,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

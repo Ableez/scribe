@@ -11,12 +11,12 @@ const HORIZONTAL_OFFSET = 5;
 export function setFloatingElemPosition(
   targetRect: DOMRect | null,
   floatingElem: HTMLElement,
-  anchorElem: HTMLElement,
+  anchorElem: HTMLElement | null,
   isLink = false,
   verticalGap: number = VERTICAL_GAP,
   horizontalOffset: number = HORIZONTAL_OFFSET,
 ): void {
-  const scrollerElem = anchorElem.parentElement;
+  const scrollerElem = anchorElem?.parentElement;
 
   if (targetRect === null || !scrollerElem) {
     floatingElem.style.opacity = '0';

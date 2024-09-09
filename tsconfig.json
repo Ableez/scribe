@@ -37,6 +37,6 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts"
-, "src/app/create/_components/editor-plugins"  ],
+, "src/app/note/_components/editor-plugins"  ],
   "exclude": ["node_modules"]
 }

@@ -1,16 +1,79 @@
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PlusIcon, SquareCheckBig } from "lucide-react";
+import { useNotesData } from "@/lib/store/notecontent";
+import { useUser } from "@clerk/nextjs";
+import { Loader, PlusIcon, SquareCheckBig } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { IoDocument } from "react-icons/io5";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
 
 const FAB = () => {
   const [open, setOpen] = useState(false);
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const { addNote } = useNotesData();
+
+  const query = api.note.getUserNotes.useQuery();
+
+  console.log("getUserPosts", query.data);
+
+  const router = useRouter();
+
+  if (!user) return null;
+
+  const createNote = async () => {
+    const { dismiss } = toast({
+      description: (
+        <div className="flex place-items-center justify-start gap-2 align-middle">
+          <Loader
+            className="duration-&lsqb;1.5s&rsqb; animate-spin transition-all"
+            size={20}
+          />
+          <span>Creating note</span>
+        </div>
+      ),
+      duration: 24 * 60 * 1000,
+    });
+
+    try {
+      const createdNote = await addNote({
+        author: {
+          email: user.primaryEmailAddress?.emailAddress ?? "null@null.null",
+          emailVerified:
+            user.primaryEmailAddress?.verification.status === "verified",
+          id: user.id,
+          image: user.imageUrl,
+          username: user.username!,
+        },
+        authorId: user.id,
+        collaborators: [],
+        comments: [],
+        editorState: JSON.stringify(null),
+        medias: [],
+        title: "Untitled",
+      });
+
+      if (createdNote?.data!.id) router.push(`/note/${createdNote?.data.id}`);
+    } catch (error) {
+      console.error("ERROR CREATING NOTE!", error);
+      dismiss();
+      toast({
+        title: "Error creating new note",
+        variant: "destructive",
+      });
+    } finally {
+      dismiss();
+    }
+  };
 
   return (
     <div className="absolute bottom-4 right-4 z-40 md:bottom-6 md:right-14">
@@ -27,11 +90,15 @@ const FAB = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-4">
-          <Link href={"/create"} className="w-full">
-            <DropdownMenuItem className="flex w-[40dvw] place-items-center justify-start gap-4 align-middle md:w-full">
+          <DropdownMenuItem asChild>
+            <Button
+              onClick={() => createNote()}
+              className="flex w-[40dvw] place-items-center justify-start gap-4 align-middle md:w-full"
+            >
               <IoDocument size={16} /> New note
-            </DropdownMenuItem>
-          </Link>
+            </Button>
+          </DropdownMenuItem>
+
           <Link href={""}>
             <DropdownMenuItem className="flex w-[40dvw] place-items-center justify-start gap-4 align-middle md:w-full">
               <SquareCheckBig size={16} /> Add a task

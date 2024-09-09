@@ -1,80 +1,114 @@
 import type { SerializedEditorState, SerializedLexicalNode } from "lexical";
 
-export type Author = {
+type Author = {
   id: string;
   username: string;
   email: string;
-  profilePicture: string;
+  emailVerified: boolean;
+  image: string;
 };
 
-export type Version = {
-  id: string;
-  createdAt: string;
-  previousVersion: string;
-  lastEdittedAt: string;
-};
-
-export type EditorSettings = {
-  pageStyle: string;
+type EditorSettings = {
+  pageStyle: "lined" | "cross";
+  theme: {
+    backgroundColor: string;
+    fontFamily: string;
+    icon: string;
+  };
 };
 
 export type Collaborator = Author;
 
-export type NoteComment = {
+type Comment = {
   id: string;
-  author: Author;
-  text: string;
   createdAt: string;
-  edittedAt: string;
+  updatedAt: string;
+  authorId: string;
+  noteId: string;
+  text: string;
   isEditted: boolean;
+  edittedAt: string | null;
+};
+
+type Media = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  owner: string;
+  noteId: string;
+  url: string;
+  size: string;
+  type: string;
+};
+
+export type NoteDocument = {
+  id: string;
+  title: string;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+  editorSettings: EditorSettings;
+  editorState: SerializedEditorState<SerializedLexicalNode> | null;
+  author: Author;
+  comments: Comment[];
+  medias: Media[];
 };
 
 export type NoteDocumentState = {
-  title: string;
-  editorState: SerializedEditorState<SerializedLexicalNode> | null;
-  author: Author;
-  versions: Version[];
-  editorSettings: EditorSettings;
-  collaborators: Collaborator[];
-  comments: NoteComment[];
+  noteDocuments: NoteDocument[];
 };
 
 export type NoteDocumentActions = {
-  setTitle: (title: string) => void;
+  addNoteDocument: (noteDocument: NoteDocument) => void;
+  removeNoteDocument: (id: string) => void;
+  updateNoteDocument: (id: string, updates: Partial<NoteDocument>) => void;
+
+  setTitle: (id: string, title: string) => void;
   setEditorState: (
-    editorState: SerializedEditorState<SerializedLexicalNode>,
-  ) => void;
-  setAuthor: (author: NoteDocumentState["author"]) => void;
-  addVersion: (version: NoteDocumentState["versions"][0]) => void;
-  updateVersion: (
     id: string,
-    updates: Partial<NoteDocumentState["versions"][0]>,
+    editorState: SerializedEditorState<SerializedLexicalNode> | null,
   ) => void;
-  setEditorSettings: (settings: NoteDocumentState["editorSettings"]) => void;
-  addCollaborator: (
-    collaborator: NoteDocumentState["collaborators"][0],
-  ) => void;
-  removeCollaborator: (id: string) => void;
+  setAuthor: (id: string, author: Author) => void;
+  setEditorSettings: (id: string, settings: EditorSettings) => void;
+  addCollaborator: (id: string, collaborator: Collaborator) => void;
+  removeCollaborator: (documentId: string, collaboratorId: string) => void;
   updateCollaborator: (
-    id: string,
-    updates: Partial<NoteDocumentState["collaborators"][0]>,
+    documentId: string,
+    collaboratorId: string,
+    updates: Partial<Collaborator>,
   ) => void;
-  addComment: (comment: NoteDocumentState["comments"][0]) => void;
-  removeComment: (id: string) => void;
+  addComment: (id: string, comment: NoteComment) => void;
+  removeComment: (documentId: string, commentId: string) => void;
   updateComment: (
-    id: string,
-    updates: Partial<NoteDocumentState["comments"][0]>,
+    documentId: string,
+    commentId: string,
+    updates: Partial<NoteComment>,
   ) => void;
-  getTitle: () => string;
-  getEditorState: () => SerializedEditorState<SerializedLexicalNode> | null;
-  getAuthor: () => NoteDocumentState["author"];
-  getVersions: () => NoteDocumentState["versions"];
-  getVersionById: (id: string) => NoteDocumentState["versions"][0] | undefined;
-  getEditorSettings: () => NoteDocumentState["editorSettings"];
-  getCollaborators: () => NoteDocumentState["collaborators"];
-  getCollaboratorById: (
-    id: string,
-  ) => NoteDocumentState["collaborators"][0] | undefined;
-  getComments: () => NoteDocumentState["comments"];
-  getCommentById: (id: string) => NoteDocumentState["comments"][0] | undefined;
+  getNoteDocuments: () => NoteDocument[];
+  getNoteDocumentById: (id: string) => NoteDocument | undefined;
+};
+
+export type NoteActions = {
+  addNoteDocument: (noteDocument: NoteDocument) => void;
+  // removeNoteDocument: (id: string) => void;
+  updateNoteDocument: (id: string, updates: Partial<NoteDocument>) => void;
+
+  // setTitle: (id: string, title: string) => void;
+  // setEditorState: (
+  //   id: string,
+  //   editorState: SerializedEditorState<SerializedLexicalNode> | null,
+  // ) => void;
+  // setEditorSettings: (id: string, settings: EditorSettings) => void;
+  addCollaborator: (id: string, collaborator: Collaborator) => void;
+  // removeCollaborator: (documentId: string, collaboratorId: string) => void;
+  // addComment: (id: string, comment: NoteComment) => void;
+  // removeComment: (documentId: string, commentId: string) => void;
+  // updateComment: (
+  //   documentId: string,
+  //   commentId: string,
+  //   updates: Partial<NoteComment>,
+  // ) => void;
+
+  // getNoteDocuments: () => NoteDocument[];
+  // getNoteDocumentById: (id: string) => NoteDocument | undefined;
 };

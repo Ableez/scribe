@@ -6,6 +6,8 @@
  *
  */
 
+"use client";
+
 import { getDOMRangeRect } from "@/lib/utils/getDOMRangeRect";
 import "../../../../styles/floating-format.css";
 
@@ -55,7 +57,7 @@ function TextFormatFloatingToolbar({
   setIsLinkEditMode,
 }: {
   editor: LexicalEditor;
-  anchorElem: HTMLElement;
+  anchorElem: HTMLElement | null;
   isBold: boolean;
   isCode: boolean;
   isItalic: boolean;
@@ -144,7 +146,7 @@ function TextFormatFloatingToolbar({
   }, [editor, anchorElem, isLink]);
 
   useEffect(() => {
-    const scrollerElem = anchorElem.parentElement;
+    const scrollerElem = anchorElem?.parentElement;
 
     const update = () => {
       editor.getEditorState().read(() => {
@@ -299,7 +301,7 @@ function TextFormatFloatingToolbar({
 
 function useFloatingTextFormatToolbar(
   editor: LexicalEditor,
-  anchorElem: HTMLElement,
+  anchorElem: HTMLElement | null,
   setIsLinkEditMode: Dispatch<boolean>,
 ): JSX.Element | null {
   const [isText, setIsText] = useState(false);
@@ -409,7 +411,7 @@ function useFloatingTextFormatToolbar(
       isCode={isCode}
       setIsLinkEditMode={setIsLinkEditMode}
     />,
-    anchorElem,
+    anchorElem!,
   );
 }
 
@@ -417,7 +419,7 @@ export default function FloatingTextFormatToolbarPlugin({
   anchorElem = document.body,
   setIsLinkEditMode,
 }: {
-  anchorElem?: HTMLElement;
+  anchorElem: HTMLElement | null;
   setIsLinkEditMode: Dispatch<boolean>;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
