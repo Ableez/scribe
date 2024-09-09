@@ -6,7 +6,7 @@
   "scripts": {
     "build": "next build",
     "db:generate": "rm -r drizzle && drizzle-kit generate",
-    "db:thing": "rm -r drizzle && drizzle-kit generate && drizzle-kit push",
+    "db:thing": "bash ./db-thing.sh",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
