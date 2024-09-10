@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { get, set, del } from "idb-keyval";
 import debounce from "lodash/debounce";
-import type { LexicalEditor, EditorState } from "lexical";
+import type { LexicalEditor } from "lexical";
 import { api, queryClient } from "@/trpc/react";
 import { useEffect } from "react";
 
@@ -38,7 +38,7 @@ type NotesStore = {
   deleteNote: (noteId: string) => void;
   isOnline: boolean;
   setIsOnline: (isOnline: boolean) => void;
-  updateEditorState: (noteId: string, editorState: EditorState) => void;
+  updateEditorState: (noteId: string, editorState: string) => void;
   getNote: (noteId: string) => Note | undefined;
 };
 
@@ -62,12 +62,9 @@ const useNotesStore = create<NotesStore>()(
       isOnline: navigator.onLine,
       setIsOnline: (isOnline) => set({ isOnline }),
       updateEditorState: (noteId, editorState) => {
-        const serializedState = JSON.stringify(editorState.toJSON());
         set((state) => ({
           notes: state.notes.map((note) =>
-            note.id === noteId
-              ? { ...note, editorState: serializedState }
-              : note,
+            note.id === noteId ? { ...note, editorState } : note,
           ),
         }));
       },
@@ -120,11 +117,10 @@ export const useNotesData = () => {
   });
 
   const updateNoteMutation = api.note.updateNote.useMutation({
-    mutationKey: [""],
     onSuccess: async (updatedNote) => {
       if (updatedNote.data[0]) {
         useNotesStore.getState().updateNote(updatedNote.data[0]);
-        await queryClient.invalidateQueries();
+        debounce(() => void queryClient.invalidateQueries(), 1618);
       }
     },
   });
@@ -141,14 +137,13 @@ export const useNotesData = () => {
 
   // Debounced function to update editor state
   const debouncedUpdateEditorState = debounce(
-    (noteId: string, editorState: EditorState) => {
-      const serializedState = JSON.stringify(editorState.toJSON());
+    (noteId: string, updatedNote: Partial<Note>) => {
       updateNoteMutation.mutate({
         noteId,
-        updateFields: { editorState: serializedState },
+        updateFields: updatedNote,
       });
     },
-    5000,
+    1618,
   ); // Debounce for 1 second
 
   const addNote = async (
@@ -172,7 +167,10 @@ export const useNotesData = () => {
 
   const updateNote = (noteId: string, updatedNote: Partial<Note>) => {
     if (isOnline) {
-      updateNoteMutation.mutate({ noteId, updateFields: updatedNote });
+      useNotesStore
+        .getState()
+        .updateEditorState(noteId, JSON.stringify(updatedNote.editorState));
+      debouncedUpdateEditorState(noteId, updatedNote);
     } else {
       useNotesStore.getState().updateNote({ id: noteId, ...updatedNote });
     }
@@ -189,8 +187,10 @@ export const useNotesData = () => {
   const handleEditorChange = (noteId: string, editor: LexicalEditor) => {
     editor.update(() => {
       const editorState = editor.getEditorState();
-      updateEditorState(noteId, editorState);
-      debouncedUpdateEditorState(noteId, editorState);
+      updateEditorState(noteId, JSON.stringify(editorState));
+      debouncedUpdateEditorState(noteId, {
+        editorState: JSON.stringify(editorState),
+      });
     });
   };
 

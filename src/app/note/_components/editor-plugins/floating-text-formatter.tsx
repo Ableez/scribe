@@ -6,11 +6,6 @@
  *
  */
 
-"use client";
-
-import { getDOMRangeRect } from "@/lib/utils/getDOMRangeRect";
-import "../../../../styles/floating-format.css";
-
 import { $isCodeHighlightNode } from "@lexical/code";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
@@ -28,20 +23,23 @@ import {
 import { type Dispatch, useCallback, useEffect, useRef, useState } from "react";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { setFloatingElemPosition } from "@/lib/utils/setFloatingElemPosition";
+
+import { getDOMRangeRect } from "@/lib/utils/getDOMRangeRect";
 import { getSelectedNode } from "@/lib/utils/getSelectedNode";
+import { setFloatingElemPosition } from "@/lib/utils/setFloatingElemPosition";
+import { INSERT_INLINE_COMMAND } from "./CommentPlugin";
+import { Button } from "@/components/ui/button";
 import {
   Bold,
-  CodeXml,
+  Code,
   Italic,
   Link,
-  MessageSquareText,
   Strikethrough,
   Subscript,
   Superscript,
   Underline,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { IoChatbubble } from "react-icons/io5";
 
 function TextFormatFloatingToolbar({
   editor,
@@ -57,7 +55,7 @@ function TextFormatFloatingToolbar({
   setIsLinkEditMode,
 }: {
   editor: LexicalEditor;
-  anchorElem: HTMLElement | null;
+  anchorElem: HTMLElement;
   isBold: boolean;
   isCode: boolean;
   isItalic: boolean;
@@ -80,6 +78,10 @@ function TextFormatFloatingToolbar({
     }
   }, [editor, isLink, setIsLinkEditMode]);
 
+  const insertComment = () => {
+    editor.dispatchCommand(INSERT_INLINE_COMMAND, undefined);
+  };
+
   function mouseMoveListener(e: MouseEvent) {
     if (
       popupCharStylesEditorRef?.current &&
@@ -97,7 +99,7 @@ function TextFormatFloatingToolbar({
       }
     }
   }
-  function mouseUpListener() {
+  function mouseUpListener(_e: MouseEvent) {
     if (popupCharStylesEditorRef?.current) {
       if (popupCharStylesEditorRef.current.style.pointerEvents !== "auto") {
         popupCharStylesEditorRef.current.style.pointerEvents = "auto";
@@ -146,7 +148,7 @@ function TextFormatFloatingToolbar({
   }, [editor, anchorElem, isLink]);
 
   useEffect(() => {
-    const scrollerElem = anchorElem?.parentElement;
+    const scrollerElem = anchorElem.parentElement;
 
     const update = () => {
       editor.getEditorState().read(() => {
@@ -192,95 +194,102 @@ function TextFormatFloatingToolbar({
   return (
     <div
       ref={popupCharStylesEditorRef}
-      className="absolute left-0 top-0 z-[48] flex place-items-center rounded border bg-white align-middle shadow-md transition-opacity duration-200 ease-in-out will-change-transform dark:bg-black"
+      className="absolute left-0 top-0 z-[49] flex h-fit w-fit place-items-center justify-start overflow-clip rounded-xl border bg-white p-1 align-middle shadow-lg dark:bg-neutral-900"
     >
       {editor.isEditable() && (
         <>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
             }}
-            className={`${isBold ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isBold ? "!bg-violet-300 dark:bg-violet-950" : ""}`}
             aria-label="Format text as bold"
           >
-            <Bold size={16} strokeWidth={2.3} />
+            <Bold size={16} strokeWidth={2.4} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
             }}
-            className={`${isItalic ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isItalic ? "!bg-violet-300 dark:bg-violet-950" : ""}`}
             aria-label="Format text as italics"
           >
             <Italic size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
             }}
-            className={`${isUnderline ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isUnderline ? "!bg-violet-300 text-white dark:bg-violet-950" : ""}`}
             aria-label="Format text to underlined"
           >
-            <i className="format underline" />
             <Underline size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
             }}
-            className={`${isStrikethrough ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${
+              isStrikethrough
+                ? "!bg-violet-300 text-white dark:bg-violet-950"
+                : ""
+            }`}
             aria-label="Format text with a strikethrough"
           >
             <Strikethrough size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "subscript");
             }}
-            className={`${isSubscript ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isSubscript ? "!bg-violet-300 text-white dark:bg-violet-950" : ""}`}
             title="Subscript"
             aria-label="Format Subscript"
           >
             <Subscript size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "superscript");
             }}
-            className={`${isSuperscript ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${
+              isSuperscript
+                ? "!bg-violet-300 text-white dark:bg-violet-950"
+                : ""
+            }`}
             title="Superscript"
             aria-label="Format Superscript"
           >
             <Superscript size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "code");
             }}
-            className={`${isCode ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isCode ? "!bg-violet-300 dark:bg-violet-950" : ""}`}
             aria-label="Insert code block"
           >
-            <CodeXml size={16} />
+            <Code size={16} />
           </Button>
           <Button
-            variant={"icon"}
+            variant={"outline"}
             size={"icon"}
             onClick={insertLink}
-            className={`${isLink ? "bg-violet-200/70 text-violet-700" : ""} rounded`}
+            className={`rounded-sm border-none outline-none ${isLink ? "!bg-violet-300 dark:bg-violet-950" : ""}`}
             aria-label="Insert link"
           >
             <Link size={16} />
@@ -288,12 +297,13 @@ function TextFormatFloatingToolbar({
         </>
       )}
       <Button
-        variant={"icon"}
+        variant={"outline"}
         size={"icon"}
+        onClick={insertComment}
         className={"popup-item spaced insert-comment"}
         aria-label="Insert comment"
       >
-        <MessageSquareText size={16} />
+        <IoChatbubble size={16} />
       </Button>
     </div>
   );
@@ -397,6 +407,8 @@ function useFloatingTextFormatToolbar(
     return null;
   }
 
+  if (!anchorElem) return <div>Loading...</div>;
+
   return createPortal(
     <TextFormatFloatingToolbar
       editor={editor}
@@ -411,7 +423,7 @@ function useFloatingTextFormatToolbar(
       isCode={isCode}
       setIsLinkEditMode={setIsLinkEditMode}
     />,
-    anchorElem!,
+    anchorElem,
   );
 }
 

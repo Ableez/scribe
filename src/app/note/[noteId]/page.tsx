@@ -13,11 +13,24 @@ import ToolbarPlugin from "../_components/editor-plugins/toolbar-plugin";
 import UndoRedoTools from "../_components/editor-plugins/undo-redo-tools";
 import EditorTheme from "../_components/editor-plugins/editor-theme";
 import { Input } from "@/components/ui/input";
-import FloatingTextFormatToolbarPlugin from "../_components/editor-plugins/floating-formater-plugin";
 import { useTheme } from "next-themes";
-import { useNotesData } from "@/lib/store/notecontent";
+import useNotesStore, { useNotesData } from "@/lib/store/notecontent";
 import { Loader2 } from "lucide-react";
 import { formatRelative } from "date-fns";
+import FloatingLinkEditorPlugin from "../_components/editor-plugins/floating-link-formater-plugin";
+import FloatingTextFormatToolbarPlugin from "../_components/editor-plugins/floating-text-formatter";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { TRANSFORMERS } from "@lexical/markdown";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { CodeNode } from "@lexical/code";
+import { ListNode, ListItemNode } from "@lexical/list";
+import { LinkNode } from "@lexical/link";
+// import TreeViewPlugin from "../_components/editor-plugins/tree-view-debugger";
+import { api, queryClient } from "@/trpc/react";
+import { debounce } from "lodash";
+import CommentPlugin from "../_components/editor-plugins/CommentPlugin";
+import { createWebsocketProvider } from "../_components/editor-plugins/CommentPlugin/commenting/collaboration";
+import { MarkNode } from "@lexical/mark";
 
 const onError = (error: Error) => {
   console.error("NOTE EDITOR ENCOUNTERED AN ERROR: ", error);
@@ -27,15 +40,52 @@ const initialConfig = {
   namespace: "MyEditor",
   theme: EditorTheme,
   onError,
+  nodes: [
+    HeadingNode,
+    QuoteNode,
+    CodeNode,
+    ListNode,
+    ListItemNode,
+    LinkNode,
+    MarkNode,
+  ],
 };
 
 const CreateNote = ({ params }: { params: { noteId: string } }) => {
-  const [floatingAnchorElem] = useState<HTMLElement | null>(null);
-  const [_, setIsLinkEditMode] = useState<boolean>(false);
+  const [floatingAnchorElem, setFloatingAnchorElem] =
+    useState<HTMLDivElement | null>(null);
+  const [isLinkEditMode, setIsLinkEditMode] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_isCollab] = useState(false);
+
   const { theme } = useTheme();
   const { updateNote, getNote } = useNotesData();
   const [mount, setMount] = useState<boolean>(false);
   const [editorState, setEditorState] = useState<string | null>(null);
+
+  const onRef = (_floatingAnchorElem: HTMLDivElement) => {
+    if (_floatingAnchorElem !== null) {
+      setFloatingAnchorElem(_floatingAnchorElem);
+    }
+  };
+
+  const updateMut = api.note.updateNote.useMutation({
+    onSuccess: async (res) => {
+      if (res.data[0]) {
+        useNotesStore
+          .getState()
+          .updateNote({ editorState: res.data[0]?.editorState });
+        debounce(() => void queryClient.invalidateQueries(), 1618);
+      }
+    },
+  });
+
+  const debouncedUpdateNote = debounce(
+    (noteId: string, editorState: string) => {
+      updateMut.mutate({ noteId, updateFields: { editorState } });
+    },
+    1000,
+  ); // Delay of 1 second
 
   useEffect(() => {
     if (!mount) setMount(true);
@@ -72,10 +122,21 @@ const CreateNote = ({ params }: { params: { noteId: string } }) => {
   }, [params.noteId, getNote]);
 
   const onChange = (editorState: EditorState) => {
-    const editorStateJSON = editorState.toJSON();
+  const editorStateJSON = editorState.toJSON();
+
+    if (!editorStateJSON.root.direction) return;
+
     const serializedState = JSON.stringify(editorStateJSON);
     setEditorState(serializedState);
     updateNote(params.noteId, { editorState: serializedState });
+
+    // Update local Zustand store immediately
+    useNotesStore
+      .getState()
+      .updateEditorState(params.noteId, JSON.stringify(editorState));
+
+    // Debounce the server update
+    debouncedUpdateNote(params.noteId, serializedState);
   };
 
   if (!mount || editorState === null || !getNote(params.noteId)) {
@@ -91,27 +152,6 @@ const CreateNote = ({ params }: { params: { noteId: string } }) => {
       </div>
     );
   }
-
-  // if (mount && !getNote(params.noteId)) {
-  //   return (
-  //     <div className="bg-background flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-  //       <div className="mx-auto max-w-md text-center">
-  //         <TriangleAlertIcon className="text-primary mx-auto h-12 w-12" />
-  //         <h1 className="text-foreground mt-4 text-6xl font-bold tracking-tight sm:text-7xl">
-  //           ooops!
-  //         </h1>
-  //         <p className="text-muted-foreground mt-4 text-sm md:text-lg">
-  //           Oops, the note you were looking for doesn&apos;t exist.
-  //         </p>
-  //         <div className="mt-6">
-  //           <Link href="/app">
-  //             <Button>Go Back Home</Button>
-  //           </Link>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="mx-auto w-full">
@@ -138,22 +178,37 @@ const CreateNote = ({ params }: { params: { noteId: string } }) => {
               )}
             </h4>
           </div>
-          <div className="fixed left-6 top-0 h-[100dvh] border-l-[1.618px] border-red-600/80" />
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className={`${theme === "dark" ? "darklined-bg" : "lined-bg"} min-h-[80dvh] px-0.5 pb-16 focus:outline-none md:pl-2`}
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
+          <div className="fixed left-6 top-0 z-[45] h-[100dvh] border-l-[1.618px] border-red-600/80 bg-violet-500" />
+          <div className="relative" ref={onRef}>
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className={`${theme === "dark" ? "darklined-bg" : "lined-bg"} min-h-[80dvh] px-0.5 pb-16 focus:outline-none md:pl-2`}
+                />
+              }
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+            <FloatingLinkEditorPlugin
+              anchorElem={floatingAnchorElem}
+              isLinkEditMode={isLinkEditMode}
+              setIsLinkEditMode={setIsLinkEditMode}
+            />
+            <FloatingTextFormatToolbarPlugin
+              anchorElem={floatingAnchorElem}
+              setIsLinkEditMode={setIsLinkEditMode}
+            />
+          </div>
         </div>
         <HistoryPlugin />
         <AutoFocusPlugin />
-        <FloatingTextFormatToolbarPlugin
-          anchorElem={floatingAnchorElem}
-          setIsLinkEditMode={setIsLinkEditMode}
+
+        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+        {/* <HorizontalRule />
+        <MarkdownShortcutPlugin /> */}
+        <CommentPlugin
+          providerFactory={_isCollab ? createWebsocketProvider : undefined}
         />
+        {/* <TreeViewPlugin /> */}
         <OnChangePlugin onChange={onChange} />
         <ToolbarPlugin />
       </LexicalComposer>
