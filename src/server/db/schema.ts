@@ -78,6 +78,7 @@ export const noteRelations = relations(notes, ({ many, one }) => ({
   author: one(users, {
     fields: [notes.authorId],
     references: [users.id],
+    relationName: "user_notes",
   }),
   comments: many(noteComments),
   medias: many(medias),
@@ -181,7 +182,7 @@ export const mediasRelations = relations(medias, ({ one }) => ({
   owner: one(users, {
     fields: [medias.ownerId],
     references: [users.id],
-    relationName: "media_owner",
+    relationName: "user_media",
   }),
 }));
 

@@ -12,6 +12,8 @@ export const noteRouter = createTRPCRouter({
         return;
       }
 
+      console.log("CTX USERID", ctx.userId);
+
       const newNote = await ctx.db
         .insert(notes)
         .values({
