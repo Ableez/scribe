@@ -211,11 +211,10 @@ export const noteCommentsRelations = relations(noteComments, ({ one }) => ({
   note: one(notes, {
     fields: [noteComments.noteId],
     references: [notes.id],
-    relationName: "note",
   }),
   author: one(users, {
     fields: [noteComments.authorId],
     references: [users.id],
-    relationName: "comment_author",
+    relationName: "user_comments",
   }),
 }));

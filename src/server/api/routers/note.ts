@@ -3,7 +3,6 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { notes, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { ee } from "./ws-subscription";
-import { UPDATENOTEWS } from "../../../lib/utils/CONSTANTS";
 
 export const noteRouter = createTRPCRouter({
   create: protectedProcedure

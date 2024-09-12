@@ -1,10 +1,9 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { get, set, del } from "idb-keyval";
-import debounce from "lodash/debounce";
 import type { LexicalEditor } from "lexical";
-import { api, queryClient } from "@/trpc/react";
 import { useEffect } from "react";
+import { api, queryClient } from "@/trpc/react";
 
 // Types
 type User = {
@@ -15,7 +14,7 @@ type User = {
   image: string;
 };
 
-type Note = {
+export type Note = {
   id: string;
   title: string;
   authorId: string;
@@ -70,23 +69,26 @@ const useNotesStore = create<NotesStore>()(
       },
       getNote: (noteId) => {
         const state = get();
-        return state.notes.find((note) => note.id === noteId);
+        const note = state.notes.find((note) => note.id === noteId);
+        return note;
       },
     }),
     {
       name: "notes-storage",
-      getStorage: () => ({
-        getItem: async (name) => {
-          const value = (await get(name)) as unknown as string;
+      storage: createJSONStorage(() => ({
+        getItem: async (name: string) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const value = await get(name);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return value ?? null;
         },
-        setItem: async (name, value) => {
+        setItem: async (name: string, value: unknown) => {
           await set(name, value);
         },
-        removeItem: async (name) => {
+        removeItem: async (name: string) => {
           await del(name);
         },
-      }),
+      })),
     },
   ),
 );
@@ -106,56 +108,34 @@ export const useNotesData = () => {
     }
   }, [fetchNotes.isSuccess, fetchNotes.data?.data, setNotes]);
 
+  const updateTitle = api.note.updateNote.useMutation({
+    onSuccess: async (res) => {
+      if (res.data[0]) {
+        updateNote(res.data[0].id, {
+          title: res.data[0].title,
+        });
+      }
+      
+      await queryClient.invalidateQueries({
+        queryKey: ["getUserNotes", "notes"],
+        type: "active",
+      });
+    },
+  });
+
   const addNoteMutation = api.note.create.useMutation({
     onSuccess: async (newNote) => {
       if (newNote?.data) {
         useNotesStore.getState().addNote(newNote.data);
         return newNote.data;
       }
+
       await queryClient.invalidateQueries({
         queryKey: ["getUserNotes", "notes"],
         type: "active",
       });
     },
   });
-
-  // IMPLEMENT LIVE UPDATE THROUGH EVENT EMIT SO WHEN TYPING THERE SHOULD BE AN ACTIVE EMITTING OF CHANGES
-  // CHECK IF WS HAS ACCESS TO FULL TRPC CONTEXT INCLUDING USERID
-  // OR MAY BE JUST TEAR IT ALL OPEN AND SEPERATE THINGS SO THEY MAKE SENSE MORE CAUSE IM CONFUSED AS U ARE
-  //
-
-  const updateNoteMutation = api.note.updateNote.useMutation({
-    onSuccess: async (updatedNote) => {
-      if (updatedNote.data[0]) {
-        useNotesStore.getState().updateNote(updatedNote.data[0]);
-        debounce(() => void queryClient.invalidateQueries(), 1618);
-      }
-    },
-  });
-
-  const deleteNoteMutation = api.note.deleteNote.useMutation({
-    onSuccess: async (deletedNote) => {
-      if (deletedNote.data)
-        useNotesStore.getState().deleteNote(deletedNote.data);
-      await queryClient.invalidateQueries({
-        queryKey: ["getUserNotes", "notes"],
-        type: "active",
-      });
-    },
-  });
-
-  const getNoteQuery = api.note.getNoteInfo.useQuery;
-
-  // Debounced function to update editor state
-  const debouncedUpdateEditorState = debounce(
-    (noteId: string, updatedNote: Partial<Note>) => {
-      updateNoteMutation.mutate({
-        noteId,
-        updateFields: updatedNote,
-      });
-    },
-    1618,
-  ); // Debounce for 1 second
 
   const addNote = async (
     note: Omit<Note, "id" | "createdAt" | "updatedAt">,
@@ -164,7 +144,6 @@ export const useNotesData = () => {
       const createdNote = await addNoteMutation.mutateAsync(note);
       return createdNote;
     } else {
-      // For offline mode, generate a temporary ID
       const tempNote = {
         ...note,
         id: `temp_${Date.now()}`,
@@ -177,40 +156,20 @@ export const useNotesData = () => {
   };
 
   const updateNote = (noteId: string, updatedNote: Partial<Note>) => {
-    if (isOnline) {
-      useNotesStore
-        .getState()
-        .updateEditorState(noteId, JSON.stringify(updatedNote.editorState));
-      debouncedUpdateEditorState(noteId, updatedNote);
-    } else {
-      useNotesStore.getState().updateNote({ id: noteId, ...updatedNote });
-    }
+    useNotesStore
+      .getState()
+      .updateNote({ id: noteId, ...updatedNote, updatedAt: new Date() });
   };
 
   const deleteNote = (noteId: string) => {
-    if (isOnline) {
-      deleteNoteMutation.mutate({ noteId });
-    } else {
-      useNotesStore.getState().deleteNote(noteId);
-    }
+    useNotesStore.getState().deleteNote(noteId);
   };
 
   const handleEditorChange = (noteId: string, editor: LexicalEditor) => {
     editor.update(() => {
       const editorState = editor.getEditorState();
       updateEditorState(noteId, JSON.stringify(editorState));
-      debouncedUpdateEditorState(noteId, {
-        editorState: JSON.stringify(editorState),
-      });
     });
-  };
-
-  const getNoteById = (noteId: string) => {
-    const localNote = getNote(noteId);
-    if (localNote) {
-      return { data: localNote, isLoading: false, isError: false };
-    }
-    return getNoteQuery({ noteId });
   };
 
   return {
@@ -218,12 +177,10 @@ export const useNotesData = () => {
     addNote,
     updateNote,
     deleteNote,
-    getNoteById,
     getNote,
+    updateTitle,
     isOnline,
     handleEditorChange,
-    isLoading: fetchNotes.isLoading,
-    isError: fetchNotes.isError,
   };
 };
 

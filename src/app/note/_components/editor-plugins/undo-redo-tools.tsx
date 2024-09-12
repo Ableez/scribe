@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import {
   EllipsisVertical,
+  Loader2,
   MoonIcon,
   Palette,
   Redo,
@@ -21,8 +22,7 @@ import {
   REDO_COMMAND,
   UNDO_COMMAND,
 } from "lexical";
-import { IoChevronBack } from "react-icons/io5";
-import { useRouter } from "next/navigation";
+import { IoCheckmark, IoChevronBack } from "react-icons/io5";
 import {
   Drawer,
   DrawerContent,
@@ -36,16 +36,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
+import { api, queryClient } from "@/trpc/react";
+import useNotesStore from "@/lib/store/notecontent";
+import { debounce } from "lodash";
+import { useRouter } from "next/navigation";
 
 const LowPriority = 1;
 
-const UndoRedoTools = () => {
+const UndoRedoTools = ({
+  setHasChanges,
+  hasChanges,
+  noteId,
+}: {
+  setHasChanges: React.Dispatch<React.SetStateAction<boolean>>;
+  noteId: string;
+  hasChanges: boolean;
+}) => {
   const [editor] = useLexicalComposerContext();
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
   const router = useRouter();
+
+  const saveNote = api.note.updateNote.useMutation({
+    onSuccess: async (res) => {
+      if (res.data[0]) {
+        useNotesStore
+          .getState()
+          .updateNote({ editorState: res.data[0]?.editorState });
+
+        setHasChanges(false);
+        debounce(() => void queryClient.invalidateQueries(), 1618);
+      }
+    },
+  });
 
   useEffect(() => {
     return mergeRegister(
@@ -72,7 +97,21 @@ const UndoRedoTools = () => {
 
   return (
     <div className="sticky top-0 z-[49] flex place-items-center justify-between border-b bg-white px-4 py-2 align-middle dark:border-b-neutral-800 dark:bg-neutral-900">
-      <Button onClick={() => router.back()} variant={"icon"} size={"icon"}>
+      <Button
+        onClick={async () => {
+          await saveNote.mutateAsync({
+            noteId,
+            updateFields: {
+              editorState: JSON.stringify(editor.getEditorState().toJSON()),
+            },
+          });
+
+          router.back();
+        }}
+        disabled={saveNote.isPending}
+        variant={"icon"}
+        size={"icon"}
+      >
         <IoChevronBack size={20} />
       </Button>
       <div className="flex place-items-center justify-start gap-2 align-middle">
@@ -193,6 +232,31 @@ const UndoRedoTools = () => {
             </DrawerHeader>
           </DrawerContent>
         </Drawer>
+
+        <Button
+          onClick={async () => {
+            await saveNote.mutateAsync({
+              noteId,
+              updateFields: {
+                editorState: JSON.stringify(editor.getEditorState().toJSON()),
+              },
+            });
+          }}
+          disabled={saveNote.isPending || !hasChanges}
+          variant={"outline"}
+          className="relative disabled:opacity-30"
+          size={"icon"}
+        >
+          {saveNote.isPending ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <IoCheckmark size={16} />
+          )}
+
+          {hasChanges && (
+            <div className="absolute right-0 top-0 flex h-2.5 w-2.5 place-items-center justify-end rounded-full bg-red-500" />
+          )}
+        </Button>
       </div>
     </div>
   );
