@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { notes, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { ee } from "./ws-subscription";
 
 export const noteRouter = createTRPCRouter({
   create: protectedProcedure
@@ -160,8 +159,6 @@ export const noteRouter = createTRPCRouter({
         })
         .where(eq(notes.id, input.noteId))
         .returning();
-
-      ee.emit("udpateNoteWS", input);
 
       return { message: "✅Note updated", data: updatedNote };
     }),
