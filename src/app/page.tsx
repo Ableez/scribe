@@ -3,7 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import React from "react";
 
-
 const Home = async () => {
   const { userId } = auth();
   const user = await currentUser();

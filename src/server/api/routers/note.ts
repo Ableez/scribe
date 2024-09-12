@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { notes, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { ee } from "./ws-subscription";
+import { UPDATENOTEWS } from "../../../lib/utils/CONSTANTS";
 
 export const noteRouter = createTRPCRouter({
   create: protectedProcedure
@@ -61,7 +63,7 @@ export const noteRouter = createTRPCRouter({
   getUserNotes: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.userId) {
       console.log("failed to create note.❌userId not found in tRPC context");
-      return;
+      return { message: "❌User not authenticated", data: null };
     }
 
     const userNotes = await ctx.db.query.notes.findMany({
@@ -159,6 +161,8 @@ export const noteRouter = createTRPCRouter({
         })
         .where(eq(notes.id, input.noteId))
         .returning();
+
+      ee.emit("udpateNoteWS", input);
 
       return { message: "✅Note updated", data: updatedNote };
     }),

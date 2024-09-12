@@ -24,7 +24,7 @@ const FAB = () => {
 
   const query = api.note.getUserNotes.useQuery();
 
-  console.log("getUserPosts", query.data);
+  console.log("getUserNote", query.data);
 
   const router = useRouter();
 

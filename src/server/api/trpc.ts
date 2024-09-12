@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
+import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 
 /**
  * 1. CONTEXT
@@ -26,7 +27,9 @@ import { auth } from "@clerk/nextjs/server";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (
+  opts: { headers: Headers } | CreateWSSContextFnOptions,
+) => {
   const { userId } = auth();
 
   return {

@@ -112,9 +112,17 @@ export const useNotesData = () => {
         useNotesStore.getState().addNote(newNote.data);
         return newNote.data;
       }
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries({
+        queryKey: ["getUserNotes", "notes"],
+        type: "active",
+      });
     },
   });
+
+  // IMPLEMENT LIVE UPDATE THROUGH EVENT EMIT SO WHEN TYPING THERE SHOULD BE AN ACTIVE EMITTING OF CHANGES
+  // CHECK IF WS HAS ACCESS TO FULL TRPC CONTEXT INCLUDING USERID
+  // OR MAY BE JUST TEAR IT ALL OPEN AND SEPERATE THINGS SO THEY MAKE SENSE MORE CAUSE IM CONFUSED AS U ARE
+  //
 
   const updateNoteMutation = api.note.updateNote.useMutation({
     onSuccess: async (updatedNote) => {
@@ -129,7 +137,10 @@ export const useNotesData = () => {
     onSuccess: async (deletedNote) => {
       if (deletedNote.data)
         useNotesStore.getState().deleteNote(deletedNote.data);
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries({
+        queryKey: ["getUserNotes", "notes"],
+        type: "active",
+      });
     },
   });
 
